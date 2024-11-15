@@ -50,13 +50,6 @@ func produce(ctx context.Context) {
 		// sleep for a second
 		time.Sleep(time.Second)
 	}
-
-	// isProducerEnded = true
-	// ch := make(chan bool, 5)
-	// for range 5 {
-	// 	ch <- true
-	// }
-	// close(ch)
 }
 
 // var isProducerEnded bool = false
@@ -65,14 +58,13 @@ func consume(ctx context.Context) {
 	// initialize a new reader with the brokers and topic
 	// the groupID identifies the consumer and prevents
 	// it from receiving duplicate messages
+	ctx, cancel := context.WithCancel(ctx)
 	var counter atomic.Int32
-	readers := make([]*kafka.Reader, 5)
 	go func() {
+		defer cancel()
 		for {
+			time.Sleep(time.Second)
 			if counter.Load() == 10 {
-				for _, r := range readers {
-					r.Close()
-				}
 				return
 			}
 		}
@@ -85,7 +77,6 @@ func consume(ctx context.Context) {
 				Topic:   topic,
 				GroupID: "my-group",
 			})
-			readers[i] = r
 			for {
 				// the `ReadMessage` method blocks until we receive the next event
 				msg, err := r.ReadMessage(ctx)
@@ -97,6 +88,7 @@ func consume(ctx context.Context) {
 				fmt.Println("received: ", i, string(msg.Value))
 				counter.Add(1)
 			}
+			fmt.Printf("reader %v was closed\n", i)
 			wg.Done()
 		}(i)
 	}
