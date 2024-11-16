@@ -60,15 +60,14 @@ func consume(ctx context.Context) {
 	// it from receiving duplicate messages
 	ctx, cancel := context.WithCancel(ctx)
 	var counter atomic.Int32
+	ch := make(chan struct{})
+	// defer close(ch)
+
 	go func() {
 		defer cancel()
-		for {
-			time.Sleep(time.Second)
-			if counter.Load() == 10 {
-				return
-			}
-		}
+		<-ch
 	}()
+
 	for i := range 5 {
 		wg.Add(1)
 		go func(i int) {
@@ -87,6 +86,9 @@ func consume(ctx context.Context) {
 				// after receiving the message, log its value
 				fmt.Println("received: ", i, string(msg.Value))
 				counter.Add(1)
+				if counter.Load() == 10 {
+					ch <- struct{}{}
+				}
 			}
 			fmt.Printf("reader %v was closed\n", i)
 			wg.Done()
