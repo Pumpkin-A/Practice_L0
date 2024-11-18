@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"practiceL0_go_mod/consumer"
 	"practiceL0_go_mod/internal/api"
 	"practiceL0_go_mod/internal/bank"
 )
@@ -12,7 +13,8 @@ func main() {
 	// if err != nil {
 	// 	log.Fatalf("Application run error: %v", err)
 	// }
-	tm, _ := bank.New()
+	consumer := consumer.New()
+	tm, _ := bank.New(consumer)
 	server, err := api.New(tm)
 	if err != nil {
 		log.Fatalf("Application run error: %v", err)
