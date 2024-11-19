@@ -2,17 +2,18 @@ package bank
 
 import (
 	"context"
+	"encoding/json"
+	"log"
+	"practiceL0_go_mod/internal/models"
 )
 
 type Storage interface {
-	// AddTransaction(t models.Transaction) error
-	// GetTransaction(uuidTr uuid.UUID) (models.Transaction, error)
-	// UpdateTransaction(t models.Transaction) error
-	// SearchUnprocessedTransactions() []models.Transaction
+	Insert(order models.Order)
 }
 
 type Consumer interface {
-	Consume(ctx context.Context)
+	GetOrdersChan() chan []byte
+	Start(ctx context.Context)
 }
 
 // type CacheStorage interface {
@@ -24,18 +25,34 @@ type Consumer interface {
 
 type TransactionManager struct {
 	Consumer Consumer
+	Storage  Storage
 	// CacheStorage CacheStorage
-	// TrStorage Storage
 }
 
-func New(consumer Consumer) (*TransactionManager, error) {
+func New(consumer Consumer, storage Storage) (*TransactionManager, error) {
 	tm := &TransactionManager{
 		Consumer: consumer,
+		Storage:  storage,
 		// CacheStorage: cacheStorage,
-		// TrStorage:    storage,
 	}
 
-	tm.Consumer.Consume(context.Background())
+	tm.Consumer.Start(context.Background())
+	go tm.AddConsumedOrdersToDB()
 
 	return tm, nil
+}
+
+func (tm *TransactionManager) AddConsumedOrdersToDB() {
+	ch := tm.Consumer.GetOrdersChan()
+	for {
+		msg := <-ch
+
+		order := models.Order{}
+		err := json.Unmarshal(msg, &order)
+		if err != nil {
+			log.Println("[AddConsumedOrdersToDB] msg unmarshaling error")
+		}
+
+		tm.Storage.Insert(order)
+	}
 }

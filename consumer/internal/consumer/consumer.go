@@ -16,17 +16,24 @@ const (
 )
 
 type KafkaConsumer struct {
-	WG *sync.WaitGroup
+	wg         *sync.WaitGroup
+	ordersChan chan []byte
 }
 
 func New() *KafkaConsumer {
 	var wg sync.WaitGroup
+	ch := make(chan []byte, 5)
 	return &KafkaConsumer{
-		WG: &wg,
+		wg:         &wg,
+		ordersChan: ch,
 	}
 }
 
-func (c *KafkaConsumer) Consume(ctx context.Context) {
+func (c *KafkaConsumer) GetOrdersChan() chan []byte {
+	return c.ordersChan
+}
+
+func (c *KafkaConsumer) Start(ctx context.Context) {
 	// ctx, cancel := context.WithCancel(ctx)
 	// ch := make(chan struct{})
 	// // defer close(ch)
@@ -37,7 +44,7 @@ func (c *KafkaConsumer) Consume(ctx context.Context) {
 	// }()
 
 	for i := range 5 {
-		c.WG.Add(1)
+		c.wg.Add(1)
 		go func(i int) {
 			r := kafka.NewReader(kafka.ReaderConfig{
 				Brokers: []string{broker1Address, broker2Address, broker3Address},
@@ -52,10 +59,11 @@ func (c *KafkaConsumer) Consume(ctx context.Context) {
 					break
 				}
 				// after receiving the message, log its value
-				fmt.Println("received: ", i, string(msg.Value))
+				// fmt.Println("received: ", i, string(msg.Value))
+				c.ordersChan <- msg.Value
 			}
 			fmt.Printf("reader %v was closed\n", i)
-			c.WG.Done()
+			c.wg.Done()
 		}(i)
 	}
 }

@@ -2,9 +2,10 @@ package main
 
 import (
 	"log"
-	"practiceL0_go_mod/consumer"
 	"practiceL0_go_mod/internal/api"
 	"practiceL0_go_mod/internal/bank"
+	"practiceL0_go_mod/internal/consumer"
+	"practiceL0_go_mod/internal/db"
 )
 
 func main() {
@@ -13,8 +14,9 @@ func main() {
 	// if err != nil {
 	// 	log.Fatalf("Application run error: %v", err)
 	// }
+	pdb := db.New("user=postgres password=mypass dbname=ordersdb sslmode=disable")
 	consumer := consumer.New()
-	tm, _ := bank.New(consumer)
+	tm, _ := bank.New(consumer, pdb)
 	server, err := api.New(tm)
 	if err != nil {
 		log.Fatalf("Application run error: %v", err)
