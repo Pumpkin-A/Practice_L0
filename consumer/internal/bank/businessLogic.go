@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"log"
 	"practiceL0_go_mod/internal/models"
+
+	"github.com/google/uuid"
 )
 
 type Storage interface {
 	Insert(order models.Order)
+	SelectByUUID(uuid uuid.UUID) (*models.Order, error)
 }
 
 type Consumer interface {
@@ -55,4 +58,14 @@ func (tm *TransactionManager) AddConsumedOrdersToDB() {
 
 		tm.Storage.Insert(order)
 	}
+}
+
+func (tm *TransactionManager) GetOrderByUUID(req models.GetOrderReq) (*models.Order, error) {
+	order, err := tm.Storage.SelectByUUID(req.UUID)
+	if err != nil {
+		log.Println("[SelectByUUID] error with get order from db")
+		return nil, err
+	}
+	log.Println(order)
+	return order, nil
 }

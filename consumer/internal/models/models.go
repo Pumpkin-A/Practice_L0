@@ -59,3 +59,7 @@ type Order struct {
 	DateCreated       time.Time `json:"date_created"`
 	OofShard          string    `json:"oof_shard"`
 }
+
+type GetOrderReq struct {
+	UUID uuid.UUID `json:"uuid"`
+}

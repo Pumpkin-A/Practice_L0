@@ -23,7 +23,7 @@ func New(tm *bank.TransactionManager) (*Server, error) {
 func (s *Server) Run() error {
 	s.registerHandlers()
 
-	err := s.runHTTPServer("0.0.0.0", 9090)
+	err := s.runHTTPServer("localhost", 9090)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (s *Server) Run() error {
 
 func (s *Server) registerHandlers() {
 	r := s.Router.Group("/api")
-	r.GET("/", s.HandleGetTransaction)
+	r.GET("/getOrder", s.HandleGetOrder)
 
 }
 
