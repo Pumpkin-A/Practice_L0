@@ -1,7 +1,6 @@
-package cacheInMemory
+package cache
 
 import (
-	"errors"
 	"log"
 	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/models"
@@ -10,7 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type Storage interface {
+	Insert(order models.Order) error
+	GetOrderByUUID(uuid uuid.UUID) (*models.Order, error)
+}
+
 type Cache struct {
+	storage       Storage
 	mutex         sync.RWMutex
 	items         map[uuid.UUID]models.Order
 	capacity      int
@@ -19,11 +24,12 @@ type Cache struct {
 	index         int
 }
 
-func New(cfg config.Config) *Cache {
+func New(cfg config.Config, storage Storage) *Cache {
 	items := make(map[uuid.UUID]models.Order)
 	mainBuf := make([]uuid.UUID, cfg.Cache.Capacity)
 	additionalBuf := make([]uuid.UUID, cfg.Cache.Capacity)
 	cache := Cache{
+		storage:       storage,
 		items:         items,
 		capacity:      cfg.Cache.Capacity,
 		mainBuf:       mainBuf,
@@ -33,7 +39,7 @@ func New(cfg config.Config) *Cache {
 	return &cache
 }
 
-func (c *Cache) Add(order models.Order) error {
+func (c *Cache) add(order models.Order) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -65,7 +71,28 @@ func (c *Cache) GetOrder(uuid uuid.UUID) (*models.Order, error) {
 	order, ok := c.items[uuid]
 	if !ok {
 		log.Printf("[cache GetOrder] order with uuid %v was not found in cache\n", uuid)
-		return nil, errors.New("order was not found in cache")
+
+		order, err := c.storage.GetOrderByUUID(uuid)
+		if err != nil {
+			log.Printf("[GetOrderByUUID] error with get order from db: %s", err.Error())
+			return nil, models.ErrorOrderNotExist
+		}
+		return order, nil
 	}
 	return &order, nil
+}
+
+func (c *Cache) AddToDBAndCache(order models.Order) error {
+	err := c.storage.Insert(order)
+	if err != nil {
+		return err
+	}
+
+	err = c.add(order)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Order with uuid: %v was successfully added to DB and cache\n", order.OrderUID)
+	return nil
 }

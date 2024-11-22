@@ -9,34 +9,25 @@ import (
 	"github.com/google/uuid"
 )
 
-type Storage interface {
-	Insert(order models.Order)
-	GetOrderByUUID(uuid uuid.UUID) (*models.Order, error)
-}
-
 type Consumer interface {
 	GetOrdersChan() chan []byte
 	Start(ctx context.Context)
 }
 
-// type CacheStorage interface {
-// AddTransaction(tr models.Transaction) error
-// UpdateTransaction(tr models.Transaction) error
-// Clear()
-// GetTransaction(uuid uuid.UUID) (models.Transaction, error)
-// }
-
-type TransactionManager struct {
-	Consumer Consumer
-	Storage  Storage
-	// CacheStorage CacheStorage
+type CacheStorage interface {
+	AddToDBAndCache(order models.Order) error
+	GetOrder(uuid uuid.UUID) (*models.Order, error)
 }
 
-func New(consumer Consumer, storage Storage) (*TransactionManager, error) {
+type TransactionManager struct {
+	Consumer     Consumer
+	CacheStorage CacheStorage
+}
+
+func New(consumer Consumer, cacheStorage CacheStorage) (*TransactionManager, error) {
 	tm := &TransactionManager{
-		Consumer: consumer,
-		Storage:  storage,
-		// CacheStorage: cacheStorage,
+		Consumer:     consumer,
+		CacheStorage: cacheStorage,
 	}
 
 	tm.Consumer.Start(context.Background())
@@ -56,17 +47,21 @@ func (tm *TransactionManager) AddConsumedOrdersToDB() {
 			log.Println("[AddConsumedOrdersToDB] msg unmarshaling error")
 		}
 
-		tm.Storage.Insert(order)
+		// tm.Storage.Insert(order)
+		err = tm.CacheStorage.AddToDBAndCache(order)
+		if err != nil {
+			log.Println("[AddConsumedOrdersToDB] error with adding order to DB and cache")
+		}
 	}
 }
 
 func (tm *TransactionManager) GetOrderByUUID(req models.GetOrderReq) (*models.Order, error) {
-	order, err := tm.Storage.GetOrderByUUID(req.UUID)
+	order, err := tm.CacheStorage.GetOrder(req.UUID)
 	if err != nil {
-		log.Printf("[GetOrderByUUID] error with get order from db: %s", err.Error())
+		log.Printf("[GetOrderByUUID] error with get order from cache: %s", err.Error())
 		return nil, err
 	}
 
-	log.Println(order)
+	log.Printf("The order with uuid: %v has been received\n", order.OrderUID)
 	return order, nil
 }

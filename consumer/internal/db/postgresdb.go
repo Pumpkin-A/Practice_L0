@@ -51,15 +51,15 @@ func (d *details) Scan(value interface{}) error {
 	return json.Unmarshal(b, &d)
 }
 
-// TODO: возвращать ошибку
-func (pdb *PostgresDB) Insert(order models.Order) {
+func (pdb *PostgresDB) Insert(order models.Order) error {
 	orderTable := convertToDbOrder(order)
 	_, err := pdb.DB.Exec("INSERT INTO orders (uuid, details) VALUES($1, $2)", orderTable.UUID, orderTable.Details)
 	if err != nil {
-		log.Println("[SelectByUUID] error with get order from db")
-		return
+		log.Printf("[SelectByUUID] error with adding order to DB with uuid: %v\n", order.OrderUID)
+		return err
 	}
-	log.Println("данные успешно записаны")
+	log.Println("order was successfully added to DB")
+	return nil
 }
 
 func (pdb *PostgresDB) GetOrderByUUID(uuid uuid.UUID) (*models.Order, error) {

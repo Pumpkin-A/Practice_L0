@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -63,3 +64,5 @@ type Order struct {
 type GetOrderReq struct {
 	UUID uuid.UUID `json:"uuid"`
 }
+
+var ErrorOrderNotExist = errors.New("this order does not exist")

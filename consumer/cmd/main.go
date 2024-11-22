@@ -5,6 +5,7 @@ import (
 	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/api"
 	"practiceL0_go_mod/internal/bank"
+	"practiceL0_go_mod/internal/cache"
 	"practiceL0_go_mod/internal/consumer"
 	"practiceL0_go_mod/internal/db"
 
@@ -20,11 +21,11 @@ func init() {
 }
 
 func main() {
-	// TODO: вынести в конфиг номер порт тоже умеешь
 	cfg := config.New()
 	pdb := db.New(cfg)
+	cache := cache.New(cfg, pdb)
 	consumer := consumer.New(cfg)
-	tm, _ := bank.New(consumer, pdb)
+	tm, _ := bank.New(consumer, cache)
 	server, err := api.New(tm)
 	if err != nil {
 		log.Fatalf("Application run error: %v", err)
