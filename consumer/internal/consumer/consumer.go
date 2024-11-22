@@ -3,29 +3,33 @@ package consumer
 import (
 	"context"
 	"fmt"
+	"practiceL0_go_mod/config"
 	"sync"
 
 	"github.com/segmentio/kafka-go"
 )
 
-const (
-	topic          = "orders"
-	broker1Address = "localhost:9092"
-	broker2Address = "localhost:9093"
-	broker3Address = "localhost:9094"
-)
-
 type KafkaConsumer struct {
-	wg         *sync.WaitGroup
-	ordersChan chan []byte
+	Topic             string
+	Broker1Address    string
+	Broker2Address    string
+	Broker3Address    string
+	NumberOfConsumers int
+	wg                *sync.WaitGroup
+	ordersChan        chan []byte
 }
 
-func New() *KafkaConsumer {
+func New(cfg config.Config) *KafkaConsumer {
 	var wg sync.WaitGroup
-	ch := make(chan []byte, 5)
+	ch := make(chan []byte, cfg.Kafka.NumberOfConsumers)
 	return &KafkaConsumer{
-		wg:         &wg,
-		ordersChan: ch,
+		Topic:             cfg.Kafka.Topic,
+		Broker1Address:    cfg.Kafka.Broker1Address,
+		Broker2Address:    cfg.Kafka.Broker2Address,
+		Broker3Address:    cfg.Kafka.Broker3Address,
+		NumberOfConsumers: cfg.Kafka.NumberOfConsumers,
+		wg:                &wg,
+		ordersChan:        ch,
 	}
 }
 
@@ -43,12 +47,12 @@ func (c *KafkaConsumer) Start(ctx context.Context) {
 	// 	<-ch
 	// }()
 
-	for i := range 5 {
+	for i := range c.NumberOfConsumers {
 		c.wg.Add(1)
 		go func(i int) {
 			r := kafka.NewReader(kafka.ReaderConfig{
-				Brokers: []string{broker1Address, broker2Address, broker3Address},
-				Topic:   topic,
+				Brokers: []string{c.Broker1Address, c.Broker2Address, c.Broker3Address},
+				Topic:   c.Topic,
 				GroupID: "bank",
 			})
 			for {

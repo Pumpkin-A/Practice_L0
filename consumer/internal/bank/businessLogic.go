@@ -11,7 +11,7 @@ import (
 
 type Storage interface {
 	Insert(order models.Order)
-	SelectByUUID(uuid uuid.UUID) (*models.Order, error)
+	GetOrderByUUID(uuid uuid.UUID) (*models.Order, error)
 }
 
 type Consumer interface {
@@ -61,11 +61,12 @@ func (tm *TransactionManager) AddConsumedOrdersToDB() {
 }
 
 func (tm *TransactionManager) GetOrderByUUID(req models.GetOrderReq) (*models.Order, error) {
-	order, err := tm.Storage.SelectByUUID(req.UUID)
+	order, err := tm.Storage.GetOrderByUUID(req.UUID)
 	if err != nil {
-		log.Println("[SelectByUUID] error with get order from db")
+		log.Printf("[GetOrderByUUID] error with get order from db: %s", err.Error())
 		return nil, err
 	}
+
 	log.Println(order)
 	return order, nil
 }

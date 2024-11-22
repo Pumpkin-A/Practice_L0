@@ -5,7 +5,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/models"
 
 	"github.com/google/uuid"
@@ -16,12 +18,8 @@ type PostgresDB struct {
 	DB *sql.DB
 }
 
-type OrderTable struct {
-	UUID    uuid.UUID `json:"uuid"`
-	Details details   `json:"order_details"`
-}
-
-func New(connStr string) *PostgresDB {
+func New(cfg config.Config) *PostgresDB {
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", cfg.DB.DbUser, cfg.DB.DbPassword, cfg.DB.DbName, cfg.DB.SSLmode)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -31,7 +29,7 @@ func New(connStr string) *PostgresDB {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("success")
+	log.Println("db connection success")
 
 	return &PostgresDB{
 		DB: db,
@@ -53,22 +51,24 @@ func (d *details) Scan(value interface{}) error {
 	return json.Unmarshal(b, &d)
 }
 
+// TODO: возвращать ошибку
 func (pdb *PostgresDB) Insert(order models.Order) {
-	orderTable := convertToDbDetails(order)
+	orderTable := convertToDbOrder(order)
 	_, err := pdb.DB.Exec("INSERT INTO orders (uuid, details) VALUES($1, $2)", orderTable.UUID, orderTable.Details)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("[SelectByUUID] error with get order from db")
+		return
 	}
 	log.Println("данные успешно записаны")
 }
 
-func (pdb *PostgresDB) SelectByUUID(uuid uuid.UUID) (*models.Order, error) {
-	orderInDB := &OrderTable{}
+func (pdb *PostgresDB) GetOrderByUUID(uuid uuid.UUID) (*models.Order, error) {
+	orderInDB := &Order{}
 	err := pdb.DB.QueryRow("SELECT uuid, details FROM orders WHERE uuid = $1", uuid).Scan(&orderInDB.UUID, &orderInDB.Details)
 	if err != nil {
 		log.Println("[SelectByUUID] error with get order from db")
 		return nil, err
 	}
-	order := convertToOrder(*orderInDB)
+	order := convertFromDbOrder(*orderInDB)
 	return &order, nil
 }

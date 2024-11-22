@@ -3,9 +3,16 @@ package db
 import (
 	"practiceL0_go_mod/internal/models"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-func convertToDbDetails(order models.Order) OrderTable {
+type Order struct {
+	UUID    uuid.UUID `json:"uuid"`
+	Details details   `json:"order_details"`
+}
+
+func convertToDbOrder(order models.Order) Order {
 	details := details{
 		TrackNumber:       order.TrackNumber,
 		Entry:             order.Entry,
@@ -23,10 +30,10 @@ func convertToDbDetails(order models.Order) OrderTable {
 	for i := range order.Items {
 		details.Items = append(details.Items, item(order.Items[i]))
 	}
-	return OrderTable{UUID: order.OrderUID, Details: details}
+	return Order{UUID: order.OrderUID, Details: details}
 }
 
-func convertToOrder(orderTable OrderTable) models.Order {
+func convertFromDbOrder(orderTable Order) models.Order {
 	order := models.Order{
 		OrderUID:          orderTable.UUID,
 		TrackNumber:       orderTable.Details.TrackNumber,

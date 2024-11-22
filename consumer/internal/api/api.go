@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/bank"
 
 	"github.com/gin-gonic/gin"
@@ -20,10 +21,10 @@ func New(tm *bank.TransactionManager) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) Run() error {
+func (s *Server) Run(cfg config.Config) error {
 	s.registerHandlers()
 
-	err := s.runHTTPServer("localhost", 9090)
+	err := s.runHTTPServer("localhost", cfg.Server.Port)
 	if err != nil {
 		return err
 	}

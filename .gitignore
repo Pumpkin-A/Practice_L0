@@ -1,1 +1,3 @@
 producer/main.exe
+consumer/.env
+consumer/main.exe
