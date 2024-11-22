@@ -20,11 +20,15 @@ type KafkaConfig struct {
 	Broker3Address    string
 	NumberOfConsumers int
 }
+type CacheConfig struct {
+	Capacity int
+}
 
 type Config struct {
 	DB     DBConfig
 	Server ServerConfig
 	Kafka  KafkaConfig
+	Cache  CacheConfig
 }
 
 func New() Config {
@@ -50,7 +54,12 @@ func New() Config {
 		Port: 9090,
 	}
 
+	cache := CacheConfig{
+		Capacity: 100,
+	}
+
 	return Config{DB: db,
 		Server: server,
-		Kafka:  kafka}
+		Kafka:  kafka,
+		Cache:  cache}
 }
