@@ -8,8 +8,9 @@ import (
 )
 
 type Order struct {
-	UUID    uuid.UUID `json:"uuid"`
-	Details details   `json:"order_details"`
+	UUID      uuid.UUID `json:"uuid"`
+	CreatedAt time.Time `json:"createdAt"`
+	Details   details   `json:"order_details"`
 }
 
 func convertToDbOrder(order models.Order) Order {
@@ -30,7 +31,7 @@ func convertToDbOrder(order models.Order) Order {
 	for i := range order.Items {
 		details.Items = append(details.Items, item(order.Items[i]))
 	}
-	return Order{UUID: order.OrderUID, Details: details}
+	return Order{UUID: order.OrderUID, Details: details, CreatedAt: time.Now()}
 }
 
 func convertFromDbOrder(orderTable Order) models.Order {

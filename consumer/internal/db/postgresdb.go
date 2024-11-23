@@ -53,9 +53,9 @@ func (d *details) Scan(value interface{}) error {
 
 func (pdb *PostgresDB) Insert(order models.Order) error {
 	orderTable := convertToDbOrder(order)
-	_, err := pdb.DB.Exec("INSERT INTO orders (uuid, details) VALUES($1, $2)", orderTable.UUID, orderTable.Details)
+	_, err := pdb.DB.Exec("INSERT INTO orders (uuid, details, created_at) VALUES($1, $2, $3)", orderTable.UUID, orderTable.Details, orderTable.CreatedAt)
 	if err != nil {
-		log.Printf("[SelectByUUID] error with adding order to DB with uuid: %v\n", order.OrderUID)
+		log.Printf("[SelectByUUID] error with adding order to DB with uuid: %v %s\n", order.OrderUID, err.Error())
 		return err
 	}
 	log.Println("order was successfully added to DB")
@@ -66,9 +66,35 @@ func (pdb *PostgresDB) GetOrderByUUID(uuid uuid.UUID) (*models.Order, error) {
 	orderInDB := &Order{}
 	err := pdb.DB.QueryRow("SELECT uuid, details FROM orders WHERE uuid = $1", uuid).Scan(&orderInDB.UUID, &orderInDB.Details)
 	if err != nil {
-		log.Println("[SelectByUUID] error with get order from db")
+		log.Println("[SelectByUUID] error with get order from db", err.Error())
 		return nil, err
 	}
 	order := convertFromDbOrder(*orderInDB)
 	return &order, nil
+}
+
+func (pdb *PostgresDB) CacheRecovery(limit int) ([]models.Order, error) {
+	ordersInDB := []*Order{}
+	rows, err := pdb.DB.Query("SELECT * FROM (SELECT * FROM orders o ORDER BY o.created_at DESC LIMIT $1) AS tbl ORDER BY tbl.created_at ASC;", limit)
+	if err != nil {
+		log.Println("[CacheRecovery] error with get orders from db", err.Error())
+		return nil, err
+	}
+	for rows.Next() {
+		orderInDB := Order{}
+		err := rows.Scan(&orderInDB.UUID, &orderInDB.Details, &orderInDB.CreatedAt)
+		if err != nil {
+			log.Println("[CacheRecovery] error with scanning ordersInDB to orders", err.Error())
+			return nil, err
+		}
+		ordersInDB = append(ordersInDB, &orderInDB)
+	}
+
+	orders := []models.Order{}
+	for _, orderInDB := range ordersInDB {
+		order := convertFromDbOrder(*orderInDB)
+		orders = append(orders, order)
+	}
+
+	return orders, nil
 }

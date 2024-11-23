@@ -12,6 +12,7 @@ import (
 type Storage interface {
 	Insert(order models.Order) error
 	GetOrderByUUID(uuid uuid.UUID) (*models.Order, error)
+	CacheRecovery(limit int) ([]models.Order, error)
 }
 
 type Cache struct {
@@ -36,6 +37,8 @@ func New(cfg config.Config, storage Storage) *Cache {
 		additionalBuf: additionalBuf,
 	}
 
+	go cache.recovery()
+
 	return &cache
 }
 
@@ -43,24 +46,19 @@ func (c *Cache) add(order models.Order) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	var nilUUID uuid.UUID
-	if c.additionalBuf[c.index] == nilUUID {
-		c.items[order.OrderUID] = order
-		c.mainBuf[c.index] = order.OrderUID
-	} else {
-		delete(c.items, c.additionalBuf[c.index])
-		c.additionalBuf[c.index] = nilUUID
-		c.items[order.OrderUID] = order
-		c.mainBuf[c.index] = order.OrderUID
-	}
-	c.index++
-
 	if c.index == c.capacity {
-		buf := c.additionalBuf
-		c.additionalBuf = c.mainBuf
-		c.mainBuf = buf
+		c.mainBuf, c.additionalBuf = c.additionalBuf, c.mainBuf
 		c.index = 0
 	}
+
+	var nilUUID uuid.UUID
+	delete(c.items, c.additionalBuf[c.index])
+	c.additionalBuf[c.index] = nilUUID
+
+	c.items[order.OrderUID] = order
+	c.mainBuf[c.index] = order.OrderUID
+	c.index++
+
 	return nil
 }
 
@@ -94,5 +92,20 @@ func (c *Cache) AddToDBAndCache(order models.Order) error {
 	}
 
 	log.Printf("Order with uuid: %v was successfully added to DB and cache\n", order.OrderUID)
+	return nil
+}
+
+func (c *Cache) recovery() error {
+	orders, err := c.storage.CacheRecovery(c.capacity)
+	if err != nil {
+		return err
+	}
+
+	for _, order := range orders {
+		err = c.add(order)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

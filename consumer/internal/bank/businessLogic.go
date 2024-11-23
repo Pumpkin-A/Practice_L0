@@ -30,8 +30,8 @@ func New(consumer Consumer, cacheStorage CacheStorage) (*TransactionManager, err
 		CacheStorage: cacheStorage,
 	}
 
-	tm.Consumer.Start(context.Background())
-	go tm.AddConsumedOrdersToDB()
+	// tm.Consumer.Start(context.Background())
+	// go tm.AddConsumedOrdersToDB()
 
 	return tm, nil
 }
