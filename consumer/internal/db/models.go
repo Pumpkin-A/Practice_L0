@@ -50,7 +50,7 @@ func convertFromDbOrder(orderTable Order) models.Order {
 		DateCreated:       orderTable.Details.DateCreated,
 		OofShard:          orderTable.Details.OofShard,
 	}
-	for i := range order.Items {
+	for i := range orderTable.Details.Items {
 		order.Items = append(order.Items, models.Item(orderTable.Details.Items[i]))
 	}
 	return order

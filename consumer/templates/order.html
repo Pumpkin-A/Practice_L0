@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details</title>
+</head>
+<body>
+  <h1>Order Details</h1>
+  <!-- Выводим основные данные о заказе -->
+  <p><strong>Order UID:</strong> {{ .Order.OrderUID }}</p>
+  <p><strong>Track Number:</strong> {{ .Order.TrackNumber }}</p>
+  <p><strong>Entry:</strong> {{ .Order.Entry }}</p>
+  <p><strong>Locale:</strong> {{ .Order.Locale }}</p>
+  <p><strong>Internal Signature:</strong> {{ .Order.InternalSignature }}</p>
+  <p><strong>Customer ID:</strong> {{ .Order.CustomerID }}</p>
+  <p><strong>Delivery Service:</strong> {{ .Order.DeliveryService }}</p>
+  <p><strong>Shardkey:</strong> {{ .Order.Shardkey }}</p>
+  <p><strong>Sm ID:</strong> {{ .Order.SmID }}</p>
+  <p><strong>Date Created:</strong> {{ .Order.DateCreated }}</p>
+  <p><strong>Oof Shard:</strong> {{ .Order.OofShard }}</p>
+
+
+  <p><strong>Delivery Details</strong></p>
+  <ul>
+    <li><strong>Name:</strong> {{ .Order.Delivery.Name }}</li>
+    <li><strong>Phone:</strong> {{ .Order.Delivery.Phone }}</li>
+    <li><strong>Zip:</strong> {{ .Order.Delivery.Zip }}</li>
+    <li><strong>City:</strong> {{ .Order.Delivery.City }}</li>
+    <li><strong>Address:</strong> {{ .Order.Delivery.Address }}</li>
+    <li><strong>Region:</strong> {{ .Order.Delivery.Region }}</li>
+    <li><strong>Email:</strong> {{ .Order.Delivery.Email }}</li>
+  </ul>
+
+  <p><strong>Payment Details</strong></p>
+  <ul>
+    <li><strong>Transaction:</strong> {{ .Order.Payment.Transaction }}</li>
+    <li><strong>RequestID:</strong> {{ .Order.Payment.RequestID }}</li>
+    <li><strong>Currency:</strong> {{ .Order.Payment.Currency }}</li>
+    <li><strong>Provider:</strong> {{ .Order.Payment.Provider }}</li>
+    <li><strong>Amount:</strong> {{ .Order.Payment.Amount }}</li>
+    <li><strong>PaymentDt:</strong> {{ .Order.Payment.PaymentDt }}</li>
+    <li><strong>Bank:</strong> {{ .Order.Payment.Bank }}</li>
+    <li><strong>Delivery Cost:</strong> {{ .Order.Payment.DeliveryCost }}</li>
+    <li><strong>Goods Total:</strong> {{ .Order.Payment.GoodsTotal }}</li>
+    <li><strong>Custom Fee:</strong> {{ .Order.Payment.CustomFee }}</li>
+
+  </ul>
+
+  <p><strong>Items</strong></p>
+  <ul>
+    {{ range $index, $item := .Order.Items }}
+    <li>
+      <strong>Item {{ add $index 1 }}</strong>
+      <ul>
+        <li><strong>Chrt ID:</strong> {{ $item.ChrtID }}</li>
+        <li><strong>TrackNumber:</strong> {{ $item.TrackNumber }}</li>
+        <li><strong>Price:</strong> {{ $item.Price }}</li>
+        <li><strong>Rid:</strong> {{ $item.Rid }}</li>
+        <li><strong>Name:</strong> {{ $item.Name }}</li>
+        <li><strong>Sale:</strong> {{ $item.Sale }}</li>
+        <li><strong>Size:</strong> {{ $item.Size }}</li>
+        <li><strong>Total Price:</strong> {{ $item.TotalPrice }}</li>
+        <li><strong>Nm ID:</strong> {{ $item.NmID }}</li>
+        <li><strong>Brand:</strong> {{ $item.Brand }}</li>
+        <li><strong>Status:</strong> {{ $item.Status }}</li>
+      </ul>
+    </li>
+    {{ end }}
+  </ul>
+
+  <a href="/">Back to search</a>
+</body>
+</html>
