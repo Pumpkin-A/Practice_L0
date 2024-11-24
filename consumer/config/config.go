@@ -33,7 +33,7 @@ type Config struct {
 
 func New() Config {
 	db := DBConfig{
-		DbUser:  "postgres",
+		DbUser:  "user_table_orders",
 		DbName:  "ordersdb",
 		SSLmode: "disable",
 	}
