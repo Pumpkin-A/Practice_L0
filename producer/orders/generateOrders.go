@@ -1,61 +1,67 @@
 package orders
 
 import (
+	"math/rand"
 	"time"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 )
 
 func GenerateOrder() Order {
-	dateCreated, _ := time.Parse(time.RFC3339, "2021-11-26T06:22:19Z")
-
 	order := Order{
 		OrderUID:    uuid.New(),
 		TrackNumber: "WBILMTESTTRACK",
 		Entry:       "WBIL",
 		Delivery: Delivery{
-			Name:    "Test Testov",
-			Phone:   "+9720000000",
-			Zip:     "2639809",
-			City:    "Kiryat Mozkin",
-			Address: "Ploshad Mira 15",
-			Region:  "Kraiot",
-			Email:   "test@gmail.com",
+			Name:    gofakeit.Name(),
+			Phone:   gofakeit.Phone(),
+			Zip:     gofakeit.Zip(),
+			City:    gofakeit.City(),
+			Address: gofakeit.Address().Address,
+			Region:  gofakeit.TimeZoneRegion(),
+			Email:   gofakeit.Email(),
 		},
 		Payment: Payment{
-			Transaction:  "b563feb7b2b84b6test",
-			RequestID:    "",
-			Currency:     "USD",
+			Transaction:  gofakeit.UUID(),
+			RequestID:    gofakeit.UUID(),
+			Currency:     gofakeit.CurrencyShort(),
 			Provider:     "wbpay",
-			Amount:       1817,
-			PaymentDt:    1637907727,
-			Bank:         "alpha",
-			DeliveryCost: 1500,
-			GoodsTotal:   317,
+			Amount:       gofakeit.IntN(500000),
+			PaymentDt:    gofakeit.IntN(1637907727),
+			Bank:         gofakeit.RandomString([]string{"alpha", "sberBank", "t-bank", "vtb"}),
+			DeliveryCost: gofakeit.IntN(10000),
+			GoodsTotal:   gofakeit.IntN(1000),
 			CustomFee:    0,
 		},
-		Items: []Item{
-			{
-				ChrtID:      9934930,
-				TrackNumber: "WBILMTESTTRACK",
-				Price:       453,
-				Rid:         "ab4219087a764ae0btest",
-				Name:        "Mascaras",
-				Sale:        30,
-				Size:        "0",
-				TotalPrice:  317,
-				NmID:        2389212,
-				Brand:       "Vivienne Sabo",
-				Status:      202,
-			}},
-		Locale:            "en",
+		Items:             []Item{},
+		Locale:            gofakeit.RandomString([]string{"en", "ru"}),
 		InternalSignature: "",
 		CustomerID:        "test",
 		DeliveryService:   "meest",
 		Shardkey:          "9",
-		SmID:              99,
-		DateCreated:       dateCreated,
+		SmID:              gofakeit.IntN(300),
+		DateCreated:       gofakeit.DateRange(time.Date(2020, 0, 0, 0, 0, 0, 0, nil), time.Now()),
 		OofShard:          "1",
+	}
+
+	itemsCount := rand.Intn(10) + 1
+	for range itemsCount {
+		item := Item{
+			ChrtID:      gofakeit.IntN(1000000),
+			TrackNumber: "WBILMTESTTRACK",
+			Price:       gofakeit.IntN(50000),
+			Rid:         "ab4219087a764ae0btest",
+			Name:        "Mascaras",
+			Sale:        gofakeit.IntN(500),
+			Size:        "0",
+			TotalPrice:  gofakeit.IntN(50000),
+			NmID:        gofakeit.IntN(1000000),
+			Brand:       gofakeit.RandomString([]string{"Vivienne Sabo", "Prada", "Gucci"}),
+			Status:      gofakeit.RandomInt([]int{202, 200, 400}),
+		}
+
+		order.Items = append(order.Items, item)
 	}
 
 	return order
