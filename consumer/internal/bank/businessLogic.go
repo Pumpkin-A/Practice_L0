@@ -2,7 +2,6 @@ package bank
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"practiceL0_go_mod/internal/models"
 
@@ -36,7 +35,8 @@ func (tm *TransactionManager) AddConsumedOrdersToDBAndCache(msg []byte) error {
 
 	if !validateOrder(order) {
 		log.Printf("[AddConsumedOrdersToDBAndCache] validation error in order: %v\n", order)
-		return errors.New("validation error")
+		// В случае ошибки валидации сообщение игнорируется, работа сервиса не останавливается
+		return nil
 	}
 
 	err = tm.CacheStorage.AddToDBAndCache(order)

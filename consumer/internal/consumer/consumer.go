@@ -55,7 +55,6 @@ func (c *KafkaConsumer) Start(ctx context.Context) {
 					log.Println("could not fetch message " + err.Error())
 					break
 				}
-
 				err = c.TransactionManager.AddConsumedOrdersToDBAndCache(msg.Value)
 				if err != nil {
 					log.Println("error with msg processing in consumer", err.Error())

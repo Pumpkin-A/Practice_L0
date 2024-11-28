@@ -55,11 +55,11 @@ func GenerateOrder() Order {
 			Name:        "Mascaras",
 			Sale:        gofakeit.IntN(500),
 			Size:        "0",
-			TotalPrice:  gofakeit.IntN(5000000) + 50000,
 			NmID:        gofakeit.IntN(1000000),
 			Brand:       gofakeit.RandomString([]string{"Vivienne Sabo", "Prada", "Gucci"}),
 			Status:      gofakeit.RandomInt([]int{202, 200, 400}),
 		}
+		item.TotalPrice = item.Price + item.Sale
 
 		order.Items = append(order.Items, item)
 	}
