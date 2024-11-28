@@ -5,20 +5,24 @@ import (
 	"html/template"
 	"net/http"
 	"practiceL0_go_mod/config"
-	"practiceL0_go_mod/internal/bank"
+	"practiceL0_go_mod/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	TransactionManager *bank.TransactionManager
+	TransactionManager TransactionManager
 	Router             *gin.Engine
 }
 
-func New(tm *bank.TransactionManager) (*Server, error) {
+type TransactionManager interface {
+	GetOrderByUUID(req models.GetOrderReq) (*models.Order, error)
+}
+
+func New(tm TransactionManager) (*Server, error) {
 	s := &Server{
-		Router:             gin.New(),
 		TransactionManager: tm,
+		Router:             gin.New(),
 	}
 	return s, nil
 }

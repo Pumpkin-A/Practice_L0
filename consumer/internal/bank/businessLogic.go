@@ -1,18 +1,13 @@
 package bank
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"practiceL0_go_mod/internal/models"
 
 	"github.com/google/uuid"
 )
-
-type Consumer interface {
-	GetOrdersChan() chan []byte
-	Start(ctx context.Context)
-}
 
 type CacheStorage interface {
 	AddToDBAndCache(order models.Order) error
@@ -20,39 +15,36 @@ type CacheStorage interface {
 }
 
 type TransactionManager struct {
-	Consumer     Consumer
 	CacheStorage CacheStorage
 }
 
-func New(consumer Consumer, cacheStorage CacheStorage) (*TransactionManager, error) {
+func New(cacheStorage CacheStorage) (*TransactionManager, error) {
 	tm := &TransactionManager{
-		Consumer:     consumer,
 		CacheStorage: cacheStorage,
 	}
-
-	tm.Consumer.Start(context.Background())
-	go tm.AddConsumedOrdersToDB()
 
 	return tm, nil
 }
 
-func (tm *TransactionManager) AddConsumedOrdersToDB() {
-	ch := tm.Consumer.GetOrdersChan()
-	for {
-		msg := <-ch
-
-		order := models.Order{}
-		err := json.Unmarshal(msg, &order)
-		if err != nil {
-			log.Println("[AddConsumedOrdersToDB] msg unmarshaling error")
-		}
-
-		// tm.Storage.Insert(order)
-		err = tm.CacheStorage.AddToDBAndCache(order)
-		if err != nil {
-			log.Println("[AddConsumedOrdersToDB] error with adding order to DB and cache")
-		}
+func (tm *TransactionManager) AddConsumedOrdersToDBAndCache(msg []byte) error {
+	order := models.Order{}
+	err := json.Unmarshal(msg, &order)
+	if err != nil {
+		log.Println("[AddConsumedOrdersToDBAndCache] msg unmarshaling error")
+		return err
 	}
+
+	if !validateOrder(order) {
+		log.Printf("[AddConsumedOrdersToDBAndCache] validation error in order: %v\n", order)
+		return errors.New("validation error")
+	}
+
+	err = tm.CacheStorage.AddToDBAndCache(order)
+	if err != nil {
+		log.Println("[AddConsumedOrdersToDBAndCache] error with adding order to DB and cache")
+		return err
+	}
+	return nil
 }
 
 func (tm *TransactionManager) GetOrderByUUID(req models.GetOrderReq) (*models.Order, error) {

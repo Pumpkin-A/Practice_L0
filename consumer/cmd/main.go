@@ -24,8 +24,8 @@ func main() {
 	cfg := config.New()
 	pdb := db.New(cfg)
 	cache := cache.New(cfg, pdb)
-	consumer := consumer.New(cfg)
-	tm, _ := bank.New(consumer, cache)
+	tm, _ := bank.New(cache)
+	consumer.New(cfg, tm)
 	server, err := api.New(tm)
 	if err != nil {
 		log.Fatalf("Application run error: %v", err)

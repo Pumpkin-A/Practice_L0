@@ -16,7 +16,6 @@ func (s *Server) HandleGetOrder(c *gin.Context) {
 	orderUIDFromQuery := c.Query("OrderUID")
 	if orderUIDFromQuery == "" {
 		if err := c.ShouldBindJSON(&getOrderReq); err != nil {
-			//TODO: добавить валидацию
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "OrderUID is required"})
 				return
