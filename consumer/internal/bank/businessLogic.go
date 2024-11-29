@@ -35,8 +35,7 @@ func (tm *TransactionManager) AddConsumedOrdersToDBAndCache(msg []byte) error {
 
 	if !validateOrder(order) {
 		log.Printf("[AddConsumedOrdersToDBAndCache] validation error in order: %v\n", order)
-		// В случае ошибки валидации сообщение игнорируется, работа сервиса не останавливается
-		return nil
+		return models.ErrorValidation
 	}
 
 	err = tm.CacheStorage.AddToDBAndCache(order)

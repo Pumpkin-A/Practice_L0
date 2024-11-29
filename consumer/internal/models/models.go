@@ -65,4 +65,7 @@ type GetOrderReq struct {
 	UUID uuid.UUID `json:"uuid"`
 }
 
-var ErrorOrderNotExist = errors.New("this order does not exist")
+var (
+	ErrorOrderNotExist = errors.New("this order does not exist")
+	ErrorValidation    = errors.New("validation error in order")
+)

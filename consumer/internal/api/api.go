@@ -13,28 +13,26 @@ import (
 type Server struct {
 	TransactionManager TransactionManager
 	Router             *gin.Engine
+	Srv                *http.Server
 }
 
 type TransactionManager interface {
 	GetOrderByUUID(req models.GetOrderReq) (*models.Order, error)
 }
 
-func New(tm TransactionManager) (*Server, error) {
+func New(cfg config.Config, tm TransactionManager) (*Server, error) {
 	s := &Server{
 		TransactionManager: tm,
-		Router:             gin.New(),
+		Router:             gin.Default(),
 	}
-	return s, nil
-}
 
-func (s *Server) Run(cfg config.Config) error {
+	listenAddress := fmt.Sprintf("%s:%d", "localhost", cfg.Server.Port)
+	s.Srv = &http.Server{
+		Addr:    listenAddress,
+		Handler: s.Router,
+	}
 	s.registerHandlers()
-
-	err := s.runHTTPServer("localhost", cfg.Server.Port)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s, nil
 }
 
 func (s *Server) registerHandlers() {
@@ -61,9 +59,7 @@ func (s *Server) registerHandlers() {
 	s.Router.GET("/viewOrder", s.HandleGetOrderHTML)
 }
 
-func (s *Server) runHTTPServer(host string, port int) error {
-	listenAddress := fmt.Sprintf("%s:%d", host, port)
-	fmt.Printf("starting http listener at http://%s\n", listenAddress)
-
-	return s.Router.Run(listenAddress)
+func (s *Server) RunHTTPServer() error {
+	fmt.Printf("starting http listener at http://%s\n", s.Srv.Addr)
+	return s.Srv.ListenAndServe()
 }
