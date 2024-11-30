@@ -2,15 +2,16 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"os/signal"
 	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/api"
-	"practiceL0_go_mod/internal/bank"
 	"practiceL0_go_mod/internal/cache"
 	"practiceL0_go_mod/internal/consumer"
 	"practiceL0_go_mod/internal/db"
+	"practiceL0_go_mod/internal/orderManager"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -21,11 +22,14 @@ import (
 func init() {
 	// loads values from .env into the system
 	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
+		slog.Info("No .env file found")
 	}
 }
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	// Create context that listens for the interrupt signal from the OS.
 	mainCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -35,17 +39,17 @@ func main() {
 	pdb := db.New(cfg)
 	defer func() {
 		pdb.DB.Close()
-		log.Println("DB was closed")
+		slog.Info("DB was closed")
 	}()
 
 	cache := cache.New(cfg, pdb)
-	tm, _ := bank.New(cache)
+	om, _ := orderManager.New(cache)
 
-	consumer := consumer.New(cfg, tm)
+	consumer := consumer.New(cfg, om)
 
-	server, err := api.New(cfg, tm)
+	server, err := api.New(cfg, om)
 	if err != nil {
-		log.Fatalf("Application run error: %v", err)
+		slog.Error("Application run error: %v", err)
 	}
 
 	g, gCtx := errgroup.WithContext(mainCtx)
@@ -53,13 +57,13 @@ func main() {
 		defer stop()
 
 		if err := server.RunHTTPServer(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Application run error: %v", err)
+			slog.Error("Application run error: %v", err)
 			return err
 		}
 		return nil
 	})
 	g.Go(func() error {
-		defer log.Println("consumer was closed")
+		defer slog.Info("consumer was closed")
 		defer stop()
 
 		consumer.Run(mainCtx)
@@ -72,7 +76,7 @@ func main() {
 
 	// в это же время должен завершиться http-сервер, его ждём тоже...
 	if err := g.Wait(); err != nil {
-		log.Printf("exit reason: %s \n", err)
+		slog.Info("exit reason: %s \n", err)
 	}
-	log.Println("Server exiting")
+	slog.Info("Server exiting")
 }

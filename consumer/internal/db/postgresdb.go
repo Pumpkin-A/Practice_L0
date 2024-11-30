@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/models"
 
@@ -22,14 +23,16 @@ func New(cfg config.Config) *PostgresDB {
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", cfg.DB.DbUser, cfg.DB.DbPassword, cfg.DB.DbName, cfg.DB.SSLmode)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error with opening db", "err", err.Error())
+		os.Exit(1)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error with pinging db", "err", err.Error())
+		os.Exit(1)
 	}
-	log.Println("db connection success")
+	slog.Info("db connection success", "user", cfg.DB.DbUser, "dbname", cfg.DB.DbName)
 
 	return &PostgresDB{
 		DB: db,
@@ -55,10 +58,10 @@ func (pdb *PostgresDB) Insert(order models.Order) error {
 	orderTable := convertToDbOrder(order)
 	_, err := pdb.DB.Exec("INSERT INTO orders (uuid, details, created_at) VALUES($1, $2, $3)", orderTable.UUID, orderTable.Details, orderTable.CreatedAt)
 	if err != nil {
-		log.Printf("[SelectByUUID] error with adding order to DB with uuid: %v %s\n", order.OrderUID, err.Error())
+		slog.Error("error with adding order to DB", "func", "Insert", "order", order.OrderUID, "err", err.Error())
 		return err
 	}
-	log.Println("order was successfully added to DB")
+	slog.Info("order was successfully added to DB", "order", order.OrderUID)
 	return nil
 }
 
@@ -66,7 +69,7 @@ func (pdb *PostgresDB) GetOrderByUUID(uuid uuid.UUID) (*models.Order, error) {
 	orderInDB := &Order{}
 	err := pdb.DB.QueryRow("SELECT uuid, details FROM orders WHERE uuid = $1", uuid).Scan(&orderInDB.UUID, &orderInDB.Details)
 	if err != nil {
-		log.Println("[SelectByUUID] error with get order from db", err.Error())
+		slog.Error("error with get order from DB", "func", "SelectByUUID", "order", uuid, "err", err.Error())
 		return nil, err
 	}
 	order := convertFromDbOrder(*orderInDB)
@@ -77,14 +80,14 @@ func (pdb *PostgresDB) CacheRecovery(limit int) ([]models.Order, error) {
 	ordersInDB := []*Order{}
 	rows, err := pdb.DB.Query("SELECT * FROM (SELECT * FROM orders o ORDER BY o.created_at DESC LIMIT $1) AS tbl ORDER BY tbl.created_at ASC;", limit)
 	if err != nil {
-		log.Println("[CacheRecovery] error with get orders from db", err.Error())
+		slog.Error("error with get orders from db", "func", "CacheRecovery", "err", err.Error())
 		return nil, err
 	}
 	for rows.Next() {
 		orderInDB := Order{}
 		err := rows.Scan(&orderInDB.UUID, &orderInDB.Details, &orderInDB.CreatedAt)
 		if err != nil {
-			log.Println("[CacheRecovery] error with scanning ordersInDB to orders", err.Error())
+			slog.Error("error with scanning ordersInDB to orders", "func", "CacheRecovery", "err", err.Error())
 			return nil, err
 		}
 		ordersInDB = append(ordersInDB, &orderInDB)

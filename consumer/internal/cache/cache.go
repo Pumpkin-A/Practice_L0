@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"log"
+	"log/slog"
 	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/models"
 	"sync"
@@ -68,11 +68,11 @@ func (c *Cache) GetOrder(uuid uuid.UUID) (*models.Order, error) {
 
 	order, ok := c.items[uuid]
 	if !ok {
-		log.Printf("[cache GetOrder] order with uuid %v was not found in cache\n", uuid)
+		slog.Info("order was not found in cache", "order", uuid)
 
 		order, err := c.storage.GetOrderByUUID(uuid)
 		if err != nil {
-			log.Printf("[GetOrderByUUID] error with get order from db: %s", err.Error())
+			slog.Error("error with get order from db", "func", "GetOrder", "order", uuid, "err", err.Error())
 			return nil, models.ErrorOrderNotExist
 		}
 		return order, nil
@@ -91,7 +91,7 @@ func (c *Cache) AddToDBAndCache(order models.Order) error {
 		return err
 	}
 
-	log.Printf("Order with uuid: %v was successfully added to DB and cache\n", order.OrderUID)
+	slog.Info("Order was successfully added to DB and cache", "order", order.OrderUID)
 	return nil
 }
 
@@ -107,5 +107,6 @@ func (c *Cache) recovery() error {
 			return err
 		}
 	}
+	slog.Info("The cache has been restored")
 	return nil
 }

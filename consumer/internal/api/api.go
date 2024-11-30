@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"html/template"
+	"log/slog"
 	"net/http"
 	"practiceL0_go_mod/config"
 	"practiceL0_go_mod/internal/models"
@@ -11,18 +12,18 @@ import (
 )
 
 type Server struct {
-	TransactionManager TransactionManager
+	TransactionManager OrderManager
 	Router             *gin.Engine
 	Srv                *http.Server
 }
 
-type TransactionManager interface {
+type OrderManager interface {
 	GetOrderByUUID(req models.GetOrderReq) (*models.Order, error)
 }
 
-func New(cfg config.Config, tm TransactionManager) (*Server, error) {
+func New(cfg config.Config, om OrderManager) (*Server, error) {
 	s := &Server{
-		TransactionManager: tm,
+		TransactionManager: om,
 		Router:             gin.Default(),
 	}
 
@@ -60,6 +61,6 @@ func (s *Server) registerHandlers() {
 }
 
 func (s *Server) RunHTTPServer() error {
-	fmt.Printf("starting http listener at http://%s\n", s.Srv.Addr)
+	slog.Info("starting http listener", "address", fmt.Sprintf("http://%s", s.Srv.Addr))
 	return s.Srv.ListenAndServe()
 }
