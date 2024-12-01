@@ -4,4 +4,6 @@ linters:
   - depguard
   - gci
   - wsl
+  -nlreturn 
+  
   fast: true

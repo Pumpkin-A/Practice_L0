@@ -17,12 +17,12 @@ type OrderManager struct {
 	CacheStorage CacheStorage
 }
 
-func New(cacheStorage CacheStorage) (*OrderManager, error) {
+func New(cacheStorage CacheStorage) *OrderManager {
 	om := &OrderManager{
 		CacheStorage: cacheStorage,
 	}
 
-	return om, nil
+	return om
 }
 
 func (om *OrderManager) SaveOrder(msg []byte) error {

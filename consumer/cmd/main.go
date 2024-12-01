@@ -43,7 +43,7 @@ func main() {
 	}()
 
 	cache := cache.New(cfg, pdb)
-	om, _ := orderManager.New(cache)
+	om := orderManager.New(cache)
 
 	consumer := consumer.New(cfg, om)
 
