@@ -49,7 +49,7 @@ func main() {
 
 	server, err := api.New(cfg, om)
 	if err != nil {
-		slog.Error("Application run error: %v", err)
+		slog.Error("Application run error", "err", err.Error())
 	}
 
 	g, gCtx := errgroup.WithContext(mainCtx)
@@ -57,7 +57,7 @@ func main() {
 		defer stop()
 
 		if err := server.RunHTTPServer(); err != nil && err != http.ErrServerClosed {
-			slog.Error("Application run error: %v", err)
+			slog.Error("Application run error", "err", err.Error())
 			return err
 		}
 		return nil
@@ -76,7 +76,7 @@ func main() {
 
 	// в это же время должен завершиться http-сервер, его ждём тоже...
 	if err := g.Wait(); err != nil {
-		slog.Info("exit reason: %s \n", err)
+		slog.Info("server exit reason", "err", err.Error())
 	}
 	slog.Info("Server exiting")
 }
