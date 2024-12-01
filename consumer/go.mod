@@ -1,6 +1,6 @@
 module practiceL0_go_mod
 
-go 1.23.2
+go 1.23
 
 require (
 	github.com/gin-gonic/gin v1.10.0
@@ -12,7 +12,7 @@ require (
 )
 
 require (
-	github.com/brianvoe/gofakeit/v7 v7.1.2 // indirect
+	github.com/brianvoe/gofakeit/v7 v7.1.2
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect

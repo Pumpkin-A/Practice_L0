@@ -1,6 +1,6 @@
 module practice_L0_producer_gomod
 
-go 1.23.2
+go 1.23
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.1.2
