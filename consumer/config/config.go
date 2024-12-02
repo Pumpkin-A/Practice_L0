@@ -3,6 +3,8 @@ package config
 import "os"
 
 type DBConfig struct {
+	DbHost     string
+	DbPort     string
 	DbUser     string
 	DbPassword string
 	DbName     string
@@ -33,21 +35,39 @@ type Config struct {
 
 func New() Config {
 	db := DBConfig{
-		DbUser:  "user_table_orders",
-		DbName:  "ordersdb",
 		SSLmode: "disable",
 	}
-	dbPassword, exists := os.LookupEnv("DbPassword")
+	DbName, exists := os.LookupEnv("POSTGRES_DB")
+	if exists {
+		db.DbName = DbName
+	}
+	DbHost, exists := os.LookupEnv("POSTGRES_HOST")
+	if exists {
+		db.DbHost = DbHost
+	}
+	DbPort, exists := os.LookupEnv("POSTGRES_PORT")
+	if exists {
+		db.DbPort = DbPort
+	}
+	DbUser, exists := os.LookupEnv("POSTGRES_USER")
+	if exists {
+		db.DbUser = DbUser
+	}
+	dbPassword, exists := os.LookupEnv("POSTGRES_PASSWORD")
 	if exists {
 		db.DbPassword = dbPassword
 	}
 
 	kafka := KafkaConfig{
 		Topic:             "orders",
-		Broker1Address:    "localhost:9092",
 		Broker2Address:    "localhost:9093",
 		Broker3Address:    "localhost:9094",
 		NumberOfConsumers: 5,
+	}
+
+	broker, exists := os.LookupEnv("KAFKA_BROKER")
+	if exists {
+		kafka.Broker1Address = broker
 	}
 
 	server := ServerConfig{

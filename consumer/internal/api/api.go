@@ -27,7 +27,7 @@ func New(cfg config.Config, om OrderManager) (*Server, error) {
 		Router:             gin.Default(),
 	}
 
-	listenAddress := fmt.Sprintf("%s:%d", "localhost", cfg.Server.Port)
+	listenAddress := fmt.Sprintf("%s:%d", "0.0.0.0", cfg.Server.Port)
 	s.Srv = &http.Server{
 		Addr:    listenAddress,
 		Handler: s.Router,

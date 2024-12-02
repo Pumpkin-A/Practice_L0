@@ -1,36 +1,32 @@
 # syntax=docker/dockerfile:1
 FROM golang:1.23 AS builder
-
-WORKDIR /app
-
+ENV CGO_ENABLED 0
+ENV GOOS linux
+WORKDIR /build
 # Копируем и устанавливаем зависимости
-COPY go.mod go.sum ./
+ADD go.mod .
+ADD go.sum .
 RUN go mod download
-
 # Копируем исходный код
 COPY . .
-
-# Меняем рабочую директорию на /app/cmd, где находится main.go
-WORKDIR /app/consumer/cmd
-
-# Сборка приложения
-RUN go build -o consumer .
+RUN go build -o /app/consumer ./cmd/main.go
 
 # Финальный образ
-FROM debian:bullseye-slim
-
-WORKDIR /root/
-
+FROM alpine
+WORKDIR /app
 # Копируем скомпилированное приложение
-COPY --from=builder /app/consumer .
+COPY --from=builder /app/consumer /app/consumer
+COPY --from=builder /build/templates /app/templates
+COPY --from=builder /build/.env /app/.env
 
 # Экспорт переменных окружения для Kafka и PostgreSQL
-ENV KAFKA_BROKER=kafka:9092
-ENV POSTGRES_HOST=postgres
+ENV KAFKA_BROKER=host.docker.internal:9092
+ENV POSTGRES_HOST=host.docker.internal
 ENV POSTGRES_PORT=5432
-ENV POSTGRES_USER=postgres
-ENV POSTGRES_PASSWORD=password
-ENV POSTGRES_DB=practice_db
+ENV POSTGRES_USER=user_table_orders
+# ENV POSTGRES_PASSWORD=myPassword
+ENV POSTGRES_DB=ordersdb
 
+EXPOSE 9090
 # Запуск приложения
 CMD ["./consumer"]

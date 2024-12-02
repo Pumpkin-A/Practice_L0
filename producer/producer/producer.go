@@ -13,14 +13,14 @@ import (
 const (
 	topic          = "orders"
 	broker1Address = "localhost:9092"
-	broker2Address = "localhost:9093"
-	broker3Address = "localhost:9094"
+	// broker2Address = "localhost:9093"
+	// broker3Address = "localhost:9094"
 )
 
 func Produce(ctx context.Context) {
 	// initialize the writer with the broker addresses, and the topic
 	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{broker1Address, broker2Address, broker3Address},
+		Brokers: []string{broker1Address},
 		Topic:   topic,
 	})
 

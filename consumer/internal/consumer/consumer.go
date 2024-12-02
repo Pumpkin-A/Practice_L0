@@ -25,11 +25,11 @@ type KafkaConsumer struct {
 
 func New(cfg config.Config, om OrderManager) *KafkaConsumer {
 	consumer := &KafkaConsumer{
-		OrderManager:      om,
-		Topic:             cfg.Kafka.Topic,
-		Broker1Address:    cfg.Kafka.Broker1Address,
-		Broker2Address:    cfg.Kafka.Broker2Address,
-		Broker3Address:    cfg.Kafka.Broker3Address,
+		OrderManager:   om,
+		Topic:          cfg.Kafka.Topic,
+		Broker1Address: cfg.Kafka.Broker1Address,
+		// Broker2Address:    cfg.Kafka.Broker2Address,
+		// Broker3Address:    cfg.Kafka.Broker3Address,
 		NumberOfConsumers: cfg.Kafka.NumberOfConsumers,
 	}
 
@@ -44,7 +44,7 @@ func (c *KafkaConsumer) Run(mainCtx context.Context) {
 		go func(i int) {
 			defer wg.Done()
 			r := kafka.NewReader(kafka.ReaderConfig{
-				Brokers: []string{c.Broker1Address, c.Broker2Address, c.Broker3Address},
+				Brokers: []string{c.Broker1Address},
 				Topic:   c.Topic,
 				GroupID: "bank",
 			})

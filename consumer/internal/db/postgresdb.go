@@ -20,7 +20,8 @@ type PostgresDB struct {
 }
 
 func New(cfg config.Config) *PostgresDB {
-	connStr := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", cfg.DB.DbUser, cfg.DB.DbPassword, cfg.DB.DbName, cfg.DB.SSLmode)
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", cfg.DB.DbHost, cfg.DB.DbPort, cfg.DB.DbUser, cfg.DB.DbPassword, cfg.DB.DbName, cfg.DB.SSLmode)
+	fmt.Println(connStr)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		slog.Error("error with opening db", "err", err.Error())
