@@ -13,8 +13,6 @@ import (
 const (
 	topic          = "orders"
 	broker1Address = "localhost:9092"
-	// broker2Address = "localhost:9093"
-	// broker3Address = "localhost:9094"
 )
 
 func Produce(ctx context.Context) {

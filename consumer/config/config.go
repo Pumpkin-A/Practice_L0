@@ -18,8 +18,6 @@ type ServerConfig struct {
 type KafkaConfig struct {
 	Topic             string
 	Broker1Address    string
-	Broker2Address    string
-	Broker3Address    string
 	NumberOfConsumers int
 }
 type CacheConfig struct {
@@ -60,8 +58,6 @@ func New() Config {
 
 	kafka := KafkaConfig{
 		Topic:             "orders",
-		Broker2Address:    "localhost:9093",
-		Broker3Address:    "localhost:9094",
 		NumberOfConsumers: 5,
 	}
 

@@ -18,18 +18,14 @@ type KafkaConsumer struct {
 	OrderManager      OrderManager
 	Topic             string
 	Broker1Address    string
-	Broker2Address    string
-	Broker3Address    string
 	NumberOfConsumers int
 }
 
 func New(cfg config.Config, om OrderManager) *KafkaConsumer {
 	consumer := &KafkaConsumer{
-		OrderManager:   om,
-		Topic:          cfg.Kafka.Topic,
-		Broker1Address: cfg.Kafka.Broker1Address,
-		// Broker2Address:    cfg.Kafka.Broker2Address,
-		// Broker3Address:    cfg.Kafka.Broker3Address,
+		OrderManager:      om,
+		Topic:             cfg.Kafka.Topic,
+		Broker1Address:    cfg.Kafka.Broker1Address,
 		NumberOfConsumers: cfg.Kafka.NumberOfConsumers,
 	}
 
