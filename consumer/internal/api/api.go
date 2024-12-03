@@ -12,9 +12,9 @@ import (
 )
 
 type Server struct {
-	TransactionManager OrderManager
-	Router             *gin.Engine
-	Srv                *http.Server
+	OrderManager OrderManager
+	Router       *gin.Engine
+	Srv          *http.Server
 }
 
 type OrderManager interface {
@@ -23,8 +23,8 @@ type OrderManager interface {
 
 func New(cfg config.Config, om OrderManager) (*Server, error) {
 	s := &Server{
-		TransactionManager: om,
-		Router:             gin.Default(),
+		OrderManager: om,
+		Router:       gin.Default(),
 	}
 
 	listenAddress := fmt.Sprintf("%s:%d", "0.0.0.0", cfg.Server.Port)

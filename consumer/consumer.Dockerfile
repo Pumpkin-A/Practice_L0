@@ -20,12 +20,11 @@ COPY --from=builder /build/templates /app/templates
 COPY --from=builder /build/.env /app/.env
 
 # Экспорт переменных окружения для Kafka и PostgreSQL
-ENV KAFKA_BROKER=host.docker.internal:9092
-ENV POSTGRES_HOST=host.docker.internal
-ENV POSTGRES_PORT=5432
-ENV POSTGRES_USER=user_table_orders
-# ENV POSTGRES_PASSWORD=myPassword
-ENV POSTGRES_DB=ordersdb
+# ENV KAFKA_BROKER=host.docker.internal:9092
+# ENV POSTGRES_HOST=host.docker.internal
+# ENV POSTGRES_PORT=5432
+# ENV POSTGRES_USER=user_table_orders
+# ENV POSTGRES_DB=ordersdb
 
 EXPOSE 9090
 # Запуск приложения

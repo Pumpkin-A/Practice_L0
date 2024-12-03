@@ -1,0 +1,111 @@
+# Use postgres/example user/password credentials
+version: '3.9'
+
+services:
+  db:
+    hostname: db
+    build:
+      context: ./db
+      dockerfile: db.Dockerfile
+    restart: always
+    environment:
+        POSTGRES_USER: docker
+        POSTGRES_PASSWORD: docker
+        POSTGRES_DB: docker
+    ports:
+      - "5000:5432"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # network_mode: bridge
+  
+  consumer:
+    hostname: consumer
+    build:
+      context: ./consumer
+      dockerfile: consumer.Dockerfile
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: user_table_orders
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: myPassword
+      POSTGRES_DB: docker
+      KAFKA_BROKER: broker:19092
+    # restart: always
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # network_mode: bridge
+    depends_on:
+      - db
+      - broker
+
+  producer:
+    hostname: producer
+    build:
+      context: ./producer
+      dockerfile: producer.Dockerfile
+    environment:
+      KAFKA_BROKER: broker:19092
+    # restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - db
+      - broker
+
+  zoo:
+    image: confluentinc/cp-zookeeper:7.3.2
+    hostname: zoo
+    container_name: zoo
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zoo:2888:3888
+
+  broker:
+    image: confluentinc/cp-kafka:7.3.2
+    hostname: broker
+    container_name: broker
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: ${DOCKER_HOST_IP:-127.0.0.1}
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    depends_on:
+      - zoo
+
+  init-kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    depends_on:
+      - broker
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server broker:19092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server broker:19092 --create --if-not-exists --topic orders  --partitions 5
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server broker:19092 --list
+      "
+
+  
+
+

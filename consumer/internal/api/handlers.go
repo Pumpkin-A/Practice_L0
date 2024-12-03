@@ -28,9 +28,9 @@ func (s *Server) HandleGetOrder(c *gin.Context) {
 		getOrderReq.UUID = parsedUUID
 	}
 
-	order, err := s.TransactionManager.GetOrderByUUID(getOrderReq)
+	order, err := s.OrderManager.GetOrderByUUID(getOrderReq)
 	if err != nil {
-		slog.Error("GetOrder request", "method", "GET", "order", order.OrderUID, "status", http.StatusBadRequest, "err", err.Error())
+		slog.Error("GetOrder request", "method", "GET", "order", getOrderReq.UUID.String(), "status", http.StatusBadRequest, "err", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -60,9 +60,9 @@ func (s *Server) HandleGetOrderHTML(c *gin.Context) {
 		return
 	}
 
-	order, err := s.TransactionManager.GetOrderByUUID(models.GetOrderReq{UUID: orderUUID})
+	order, err := s.OrderManager.GetOrderByUUID(models.GetOrderReq{UUID: orderUUID})
 	if err != nil {
-		slog.Error("GetOrder request", "method", "GET", "status", http.StatusBadRequest, "order", order.OrderUID, "err", err.Error())
+		slog.Error("GetOrder request", "method", "GET", "status", http.StatusBadRequest, "order", orderUID, "err", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

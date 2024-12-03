@@ -49,7 +49,7 @@ func (om *OrderManager) SaveOrder(msg []byte) error {
 func (om *OrderManager) GetOrderByUUID(req models.GetOrderReq) (*models.Order, error) {
 	order, err := om.CacheStorage.GetOrder(req.UUID)
 	if err != nil {
-		slog.Error("error with get order from cache", "func", "GetOrderByUUID", "order", order.OrderUID, "err", err.Error())
+		slog.Error("error with get order from cache", "func", "GetOrderByUUID", "order", req.UUID, "err", err.Error())
 		return nil, err
 	}
 
